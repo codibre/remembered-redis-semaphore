@@ -20,7 +20,16 @@ export class RememberedRedisSemaphore implements Semaphore {
 		this.settings = { lockOptions: defaultLockOptions, ...settings };
 	}
 
-	async acquire(key: string): Promise<() => Promise<unknown>> {
+	/**
+	 * Acquires the requested key and returns the release function
+	 * @param key The key to be acquired
+	 * @param ignoreAcquiringError true if acquiring errors can be ignored. Default true.
+	 * @returns The release function
+	 */
+	async acquire(
+		key: string,
+		ignoreAcquiringError = true,
+	): Promise<() => Promise<unknown>> {
 		const { redis } = this;
 		const { prefix } = this.settings;
 		const mutex = new Mutex(
@@ -41,9 +50,52 @@ export class RememberedRedisSemaphore implements Semaphore {
 		try {
 			await acquire();
 		} catch (err) {
+			if (!ignoreAcquiringError) {
+				throw err;
+			}
 			this.settings.onAcquireError?.(key, err);
 		}
 
 		return async () => dontWait(release);
+	}
+
+	/**
+	 * Runs the callback using semaphore
+	 * @param key the key to the semaphore
+	 * @param callback the callback to be executed
+	 * @param ignoreAcquiringError true if acquiring errors can be ignored. Default true
+	 * @returns the callback result
+	 */
+	async run<T>(
+		key: string,
+		callback: () => Promise<T>,
+		ignoreAcquiringError?: boolean,
+	) {
+		let release: (() => Promise<unknown>) | undefined;
+		try {
+			release = await this.acquire(key, ignoreAcquiringError);
+			return await callback();
+		} finally {
+			if (release) {
+				dontWait(release);
+			}
+		}
+	}
+
+	/**
+	 * Returns a version of the informed callback that runs with a semaphore
+	 * @param callback the callback to be executed
+	 * @param getKey a function that returns the key for the semaphore
+	 * @param ignoreAcquiringError true if acquiring errors can be ignored. Default true
+	 * @returns the callback result
+	 */
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	async wrap<Args extends any[], T>(
+		callback: (...args: Args) => Promise<T>,
+		getKey: (...args: Args) => string,
+		ignoreAcquiringError?: boolean,
+	) {
+		return (...args: Args) =>
+			this.run(getKey(...args), () => callback(...args), ignoreAcquiringError);
 	}
 }

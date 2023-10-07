@@ -154,6 +154,21 @@ describe(RememberedRedisSemaphore.name, () => {
 			expect(acquire).toHaveCallsLike([]);
 		});
 
+		it('should throw an error when semaphore acquiring fails and ignoreAcquiringError is false', async () => {
+			const error = new Error('my error');
+			acquire.mockRejectedValue(error);
+			let thrownError: any;
+
+			try {
+				await target.acquire('my key', false);
+			} catch (err) {
+				thrownError = err;
+			}
+
+			expect(acquire).toHaveCallsLike([]);
+			expect(thrownError).toBe(error);
+		});
+
 		it('should call onAcquireError when semaphore acquiring fails and onAcquireError is defined', async () => {
 			const error = new Error('my error');
 			acquire.mockRejectedValue(error);
@@ -177,6 +192,98 @@ describe(RememberedRedisSemaphore.name, () => {
 			expect(releaseMock).toHaveCallsLike();
 			await delay(1);
 			expect(releaseMock).toHaveCallsLike([]);
+		});
+	});
+
+	describe(proto.run.name, () => {
+		let release: jest.SpyInstance;
+
+		beforeEach(() => {
+			release = jest.fn();
+			jest.spyOn(target, 'acquire').mockResolvedValue(release as any);
+		});
+
+		it('should acquire semaphore, run callback and then release semaphore in the background', async () => {
+			const callback = jest.fn().mockResolvedValue('expected result');
+
+			const result = await target.run('my key', callback);
+
+			expect(result).toBe('expected result');
+			expect(target['acquire']).toHaveCallsLike(['my key', undefined]);
+			expect(release).toHaveCallsLike();
+			await delay(1);
+			expect(release).toHaveCallsLike([]);
+		});
+
+		it('should acquire semaphore, run callback and then release semaphore in the background, even in case of error', async () => {
+			const error = new Error('my error');
+			const callback = jest.fn().mockRejectedValue(error);
+			let thrownError: any;
+
+			try {
+				await target.run('my key', callback, 'ignore error value' as any);
+			} catch (err) {
+				thrownError = err;
+			}
+
+			expect(thrownError).toBe(error);
+			expect(target['acquire']).toHaveCallsLike([
+				'my key',
+				'ignore error value',
+			]);
+			expect(release).toHaveCallsLike();
+			await delay(1);
+			expect(release).toHaveCallsLike([]);
+		});
+	});
+
+	describe(proto.wrap.name, () => {
+		let release: jest.SpyInstance;
+
+		beforeEach(() => {
+			release = jest.fn();
+			jest.spyOn(target, 'acquire').mockResolvedValue(release as any);
+		});
+
+		it('should acquire semaphore, run callback and then release semaphore in the background', async () => {
+			const callback = jest.fn().mockResolvedValue('expected result');
+
+			const wrappedCallback = await target.wrap(callback, (...args: string[]) =>
+				args.join(':'),
+			);
+			const result = await wrappedCallback('a', 'b', 'c', 'd');
+
+			expect(result).toBe('expected result');
+			expect(target['acquire']).toHaveCallsLike(['a:b:c:d', undefined]);
+			expect(release).toHaveCallsLike();
+			await delay(1);
+			expect(release).toHaveCallsLike([]);
+		});
+
+		it('should acquire semaphore, run callback and then release semaphore in the background, even in case of error', async () => {
+			const error = new Error('my error');
+			const callback = jest.fn().mockRejectedValue(error);
+			let thrownError: any;
+
+			try {
+				const wrappedCallback = await target.wrap(
+					callback,
+					(...args: string[]) => args.join(':'),
+					'ignore error value' as any,
+				);
+				await wrappedCallback('a', 'b', 'c', 'd');
+			} catch (err) {
+				thrownError = err;
+			}
+
+			expect(thrownError).toBe(error);
+			expect(target['acquire']).toHaveCallsLike([
+				'a:b:c:d',
+				'ignore error value',
+			]);
+			expect(release).toHaveCallsLike();
+			await delay(1);
+			expect(release).toHaveCallsLike([]);
 		});
 	});
 });
