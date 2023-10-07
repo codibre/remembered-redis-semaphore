@@ -95,11 +95,13 @@
     "ts-node": "^10.6.0",
     "typedoc": "^0.22.17",
     "typedoc-plugin-markdown": "^3.12.1",
-    "typescript": "^4.5.2"
-  },
-  "dependencies": {
+    "typescript": "^4.5.2",
     "@remembered/redis": "^1.9.0",
     "redis-semaphore": "^5.5.0",
     "remembered": "^0.11.0"
+  },
+  "peerDependencies": {
+    "@remembered/redis": ">=1.9.0",
+    "redis-semaphore": ">=5.5.0"
   }
 }
