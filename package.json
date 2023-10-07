@@ -1,8 +1,7 @@
 {
-  "name": "@remembered-redis/redis-semaphore",
+  "name": "@remembered/redis-semaphore",
   "description": "Remembered redis semaphore implementation",
   "version": "0.1.0",
-  "private": true,
   "author": {
     "name": "Thiago O Santos <tos.oliveira@gmail.com>"
   },
