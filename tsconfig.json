@@ -12,7 +12,7 @@
     "experimentalDecorators": true,
     "importsNotUsedAsValues": "remove",
     "target": "es2020",
-    "sourceMap": false,
+    "sourceMap": true,
     "outDir": "./dist",
     "noImplicitAny": true,
     "alwaysStrict": true,
