@@ -1,3 +1,10 @@
+# [0.2.0](https://github.com/codibre/remembered-redis-semaphore/compare/v0.1.1...v0.2.0) (2023-10-07)
+
+
+### Features
+
+* creating run and wrap functions ([2726485](https://github.com/codibre/remembered-redis-semaphore/commit/27264854e589baec8ad340d10f95ca481a612be9))
+
 ## [0.1.1](https://github.com/codibre/remembered-redis-semaphore/compare/v0.1.0...v0.1.1) (2023-10-07)
 
 
