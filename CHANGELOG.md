@@ -1,3 +1,10 @@
+## [0.2.2](https://github.com/codibre/remembered-redis-semaphore/compare/v0.2.1...v0.2.2) (2023-11-13)
+
+
+### Bug Fixes
+
+* fixing installment instructions ([#2](https://github.com/codibre/remembered-redis-semaphore/issues/2)) ([98b768c](https://github.com/codibre/remembered-redis-semaphore/commit/98b768c94b83589b7d7db06cbe0f018111416e99))
+
 ## [0.2.1](https://github.com/codibre/remembered-redis-semaphore/compare/v0.2.0...v0.2.1) (2023-10-08)
 
 
