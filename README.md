@@ -11,7 +11,7 @@ This packages uses [redis-semaphore](https://www.npmjs.com/package/redis-semapho
 ## How to Install
 
 ```
-npm i remembered-redis-semaphore
+npm i @remembered/redis-semaphore
 ```
 
 ## How to use it
